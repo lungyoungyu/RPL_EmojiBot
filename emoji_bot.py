@@ -25,37 +25,66 @@ async def on_message(message):
     channel_reacts = {}
 
     if command == "!help":
-        await channel.send("Emoji Bot Commands:\n !reacts #channel_name: View number of reacts for each react in #channel_name, defaults to current channel if no #channel_name is included."
-    elif command == "!reacts":
-        # Default: get reacts for current channel
         channel = message.channel
+        await channel.send("Emoji Bot Commands:\n !reacts #channel_name: View number of reacts for each react in #channel_name, defaults to current channel if no #channel_name is included.")
+    elif command == "!reacts":
+        # Get reacts for each channel mentioned
         if len(message.channel_mentions) > 0:
             count = 0
-            channel = message.channel
+            currChannel = message.channel
+            for mention in message.channel_mentions:
+                channel = mention
+                try: 
+                    # await channel.send("Tallying up reacts is hard work.")
+                    async for message in channel.history(limit=None):
+                        for react in message.reactions:
+                            count += 1
+                            if react in channel_reacts:
+                                channel_reacts[react] += react.count
+                            else:
+                                channel_reacts[react] = react.count
+                    if count == 0:
+                        await currChannel.send("The unimaginable is reality. There are no reacts in this channel!")
+                    else:
+                        printCount = 0
+                        content = ""
+                        for react in channel_reacts.keys():
+                            printCount += channel_reacts[react]
+                            content += str(react) + ": " + str(channel_reacts[react])
+                            if printCount < count:
+                                content += " | "
 
-            channel = message.channel_mentions[0]
-
-        # await channel.send("Tallying up reacts is hard work.")
-        async for message in channel.history(limit=None):
-            for react in message.reactions:
-                count += 1
-                if react in channel_reacts:
-                    channel_reacts[react] += react.count
-                else:
-                    channel_reacts[react] = react.count
-        if count == 0:
-            await channel.send("The unimaginable is reality. There are no reacts in this channel!")
+                        await currChannel.send(str(channel) + " - " + content + "\n")
+                except:
+                    await currChannel.send("Error with accessing " + str(channel))
+        # Default: get reacts for current channel
         else:
-            printCount = 0
-            content = ""
-            for react in channel_reacts.keys():
-                printCount += channel_reacts[react]
-                content += str(react) + ": " + str(channel_reacts[react])
-                if printCount < count:
-                    content += " | "
+            count = 0
+            channel = message.channel
+            try:
+                # await channel.send("Tallying up reacts is hard work.")
+                async for message in channel.history(limit=None):
+                    for react in message.reactions:
+                        count += 1
+                        if react in channel_reacts:
+                            channel_reacts[react] += react.count
+                        else:
+                            channel_reacts[react] = react.count
+                if count == 0:
+                    await channel.send("The unimaginable is reality. There are no reacts in this channel!")
+                else:
+                    printCount = 0
+                    content = ""
+                    for react in channel_reacts.keys():
+                        printCount += channel_reacts[react]
+                        content += str(react) + ": " + str(channel_reacts[react])
+                        if printCount < count:
+                            content += " | "
 
-            await channel.send(content)
-
+                    await channel.send(str(channel) + " - " + content)
+            except:
+                await currChannel.send("Error with accessing " + str(channel) + ".")
+    
        
 
 
