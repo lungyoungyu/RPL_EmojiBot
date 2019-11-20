@@ -26,7 +26,9 @@ async def on_message(message):
 
     if command == "!help":
         channel = message.channel
-        await channel.send("Emoji Bot Commands:\n !reacts #channel_name: View number of reacts for each react in #channel_name, defaults to current channel if no #channel_name is included.")
+        await channel.send("Emoji Bot Commands:\n")
+        await channel.send("!reacts #channel_nameA, #channel_nameB, etc.: View number of reacts for each react in #channel_nameA, #channel_nameB, etc.; defaults to current channel if no #channel_names are included.")
+        await channel.send("!react_king #channel_name: view message in #channel_name with most total reacts and see number of reacts for each react in message; defaults to current channel if no #channel_name is included.")
     elif command == "!reacts":
         # Get reacts for each channel mentioned
         if len(message.channel_mentions) > 0:
@@ -44,7 +46,7 @@ async def on_message(message):
                             else:
                                 channel_reacts[react] = react.count
                     if count == 0:
-                        await currChannel.send("The unimaginable is reality. There are no reacts in this channel!")
+                        await currChannel.send("There are no reacts in this channel! \U0001F62E")
                     else:
                         printCount = 0
                         content = ""
@@ -71,7 +73,7 @@ async def on_message(message):
                         else:
                             channel_reacts[react] = react.count
                 if count == 0:
-                    await channel.send("The unimaginable is reality. There are no reacts in this channel!")
+                    await channel.send("There are no reacts in this channel! \U0001F62E")
                 else:
                     printCount = 0
                     content = ""
@@ -84,6 +86,72 @@ async def on_message(message):
                     await channel.send(str(channel) + " - " + content)
             except:
                 await currChannel.send("Error with accessing " + str(channel) + ".")
+    elif command == "!react_king":
+        # all_channels = message.guild.text_channels
+        current_channel = message.channel
+        # Specified channel
+        if len(message.channel_mentions) == 1:
+            channel = message.channel_mentions[0]
+            total_message_reacts = {}
+            reactExists = False
+            async for message in channel.history(limit=None):
+                numReacts = 0
+                for react in message.reactions:
+                    numReacts += react.count
+                total_message_reacts[message] = numReacts
+                if numReacts > 0:
+                    reactExists = True
+
+            if reactExists is True:
+                message = max(total_message_reacts, key=total_message_reacts.get)
+                content = "MESSAGE - " + str(message.content) + "\n" + "BY - " + str(message.author.nick) + "\n" + "REACTS - "
+                reacts = message.reactions
+                count = total_message_reacts[message]
+                
+                printCount = 0
+                for react in reacts:
+                    printCount += react.count
+                    content += str(react.emoji) +  ": " + str(react.count)
+                    if printCount < count:
+                        content += " | "
+                await current_channel.send(content)
+            else:
+                await current_channel.send("There are no reacts in this server! \U0001F62E")
+        # Default channel
+        elif len(message.channel_mentions) == 0:
+            total_message_reacts = {}
+            reactExists = False
+            async for message in current_channel.history(limit=None):
+                numReacts = 0
+                for react in message.reactions:
+                    numReacts += react.count
+                total_message_reacts[message] = numReacts
+                if numReacts > 0:
+                    reactExists = True
+
+            if reactExists is True:
+                message = max(total_message_reacts, key=total_message_reacts.get)
+                content = "MESSAGE: " + str(message.content) + "\n" + "BY: " + str(message.author.nick) + "\n" + "REACTS: "
+                reacts = message.reactions
+                count = total_message_reacts[message]
+                
+                printCount = 0
+                for react in reacts:
+                    printCount += react.count
+                    content += str(react.emoji) +  ": " + str(react.count)
+                    if printCount < count:
+                        content += " | "
+                await current_channel.send(content)
+            else:
+                await current_channel.send("There are no reacts in this server! \U0001F62E")
+        else:
+            await channel.send("Specify one channel or leave blank (default to current channel)")
+
+
+            
+
+            
+
     
        
 
